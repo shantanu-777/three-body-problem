@@ -1,0 +1,27 @@
+# Virtual environment
+.venv/
+
+# Generated simulation datasets (large; regenerate with src/generate_data.py)
+data/*
+!data/.gitkeep
+
+# Python caches
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Trained models / checkpoints
+*.keras
+*.h5
+checkpoints/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Matplotlib cache (if redirected into the project)
+.mplcache/

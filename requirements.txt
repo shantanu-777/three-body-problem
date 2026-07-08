@@ -1,0 +1,18 @@
+# Core dependencies for the 3-body SBI project.
+# Recreate the environment with:
+#   python3.13 -m venv .venv
+#   ./.venv/bin/pip install -r requirements.txt
+#
+# BayesFlow 2.x runs on Keras 3, which needs a backend. We use JAX.
+# Set the backend before importing bayesflow:  export KERAS_BACKEND=jax
+
+bayesflow==2.0.12      # amortized SBI: summary + inference networks, training, diagnostics
+keras==3.15.0          # pulled in by bayesflow; multi-backend deep learning API
+jax[cpu]==0.10.2       # compute backend for Keras/BayesFlow (CPU build)
+
+scipy==1.18.0          # solve_ivp with the DOP853 integrator (the simulator)
+numpy==2.5.1           # array math for states and trajectories
+matplotlib==3.11.0     # all figures for slides and report
+
+jupyter==1.1.1         # notebooks for exploration and figure generation
+notebook==7.6.0
