@@ -55,7 +55,7 @@ notebooks/           # exploration + figures for slides/report
 ## Status
 
 - [x] Phase 0 — environment & scaffold
-- [ ] Phase 1 — simulator
+- [x] Phase 1 — simulator
 - [ ] Phase 2 — Lyapunov timescale
 - [ ] Phase 3 — priors + dataset
 - [ ] Phase 4 — BayesFlow pipeline
