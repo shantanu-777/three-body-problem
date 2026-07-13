@@ -76,19 +76,32 @@ N_OBS = 50
 OBS_TIMES = np.linspace(0.0, T_MAX, N_OBS)
 
 # ---------------------------------------------------------------------------
-# Observation noise  [PROVISIONAL — finalize in Phase 3]
+# Observation noise  [set in Phase 3]
 # ---------------------------------------------------------------------------
 # Independent Gaussian noise added i.i.d. per recorded timestep, with separate
 # scales for position and velocity (they carry different units).
-SIGMA_X = 1e-2               # position noise std
-SIGMA_V = 1e-2               # velocity noise std
+# At ~1% of a unit-length scale, noise is visible but does not swamp the signal.
+SIGMA_X = 1e-2
+SIGMA_V = 1e-2
 
 # ---------------------------------------------------------------------------
-# Prior bounds over the free DOF  [PROVISIONAL — finalize in Phase 3]
+# Prior over the 8 free DOF  [set in Phase 3]
 # ---------------------------------------------------------------------------
-# Uniform priors as a starting point; ranges are in nondimensional COM-frame units.
-PRIOR_POS_RANGE = (-1.0, 1.0)    # initial position components for bodies 1 & 2
-PRIOR_VEL_RANGE = (-0.5, 0.5)    # initial velocity components for bodies 1 & 2
+# Uniform prior on bodies 1 & 2 (positions + velocities), with body 3 constructed
+# from COM + zero-momentum constraints. Rejection during simulation further
+# truncates to bounded, non-colliding orbits (the effective prior for SBI).
+#
+# Bounds chosen so bodies start separated but not too far (avoid immediate escape).
+PRIOR_POS_RANGE = (-2.0, 2.0)
+PRIOR_VEL_RANGE = (-0.15, 0.15)
+
+# Cheap prior-level rejection: minimum pairwise distance at t=0.
+MIN_INITIAL_SEPARATION = 0.15
+MAX_PRIOR_PROPOSALS = 10_000
+
+# Dataset sizes
+DATASET_SIZE_DEV = 500
+DATASET_SIZE_FULL = 50_000
 
 # ---------------------------------------------------------------------------
 # Reproducibility & backend
