@@ -62,12 +62,17 @@ ESCAPE_RADIUS = 10.0
 MAX_ENERGY_DRIFT = 1e-6
 
 # ---------------------------------------------------------------------------
-# Time grid & observations  [PROVISIONAL — finalize in Phase 2 from Lyapunov time]
+# Time grid & observations  [set in Phase 2 from Lyapunov analysis]
 # ---------------------------------------------------------------------------
-# T_MAX and the observation times will be chosen so that several observations
-# fall within the first few Lyapunov times (where information about the ICs lives).
-T_MAX = 10.0                 # total integration time
-N_OBS = 50                   # number of recorded observation times t_1 < ... < t_K
+# Empirical estimate from src/lyapunov.py on the reference demo configuration:
+#   LYAPUNOV_EXPONENT ≈ 0.089  ->  LYAPUNOV_TIME ≈ 11.3
+# T_MAX = 10 keeps the full window within ~0.9 Lyapunov times (all 50 obs points
+# fall inside the first Lyapunov time, satisfying the spec).
+LYAPUNOV_EXPONENT = 0.08866937958425708
+LYAPUNOV_TIME = 11.277850422419627
+
+T_MAX = 10.0
+N_OBS = 50
 OBS_TIMES = np.linspace(0.0, T_MAX, N_OBS)
 
 # ---------------------------------------------------------------------------
