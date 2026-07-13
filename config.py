@@ -104,6 +104,21 @@ DATASET_SIZE_DEV = 500
 DATASET_SIZE_FULL = 50_000
 
 # ---------------------------------------------------------------------------
+# BayesFlow training  [Phase 4/5]
+# ---------------------------------------------------------------------------
+TRAIN_EPOCHS = 100
+TRAIN_BATCH_SIZE = 32
+TRAIN_VAL_FRACTION = 0.1
+TRAIN_NUM_DIAG_SAMPLES = 1000
+SUMMARY_DIM = 16
+SUMMARY_EMBED_DIMS = (64, 64)
+SUMMARY_NUM_HEADS = (4, 4)
+INFERENCE_FLOW_DEPTH = 6
+LEARNING_RATE = 5e-4
+CHECKPOINT_DIR = "checkpoints"
+RESULTS_DIR = "results"
+
+# ---------------------------------------------------------------------------
 # Reproducibility & backend
 # ---------------------------------------------------------------------------
 SEED = 42
