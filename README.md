@@ -60,5 +60,5 @@ notebooks/           # exploration + figures for slides/report
 - [x] Phase 3 — priors + dataset (`data/train_full.npz` target: 50k, **4 obs points/trajectory**)
 - [x] Phase 4 — BayesFlow training (`src/inference.py`, checkpoint in `checkpoints/`)
 - [x] Phase 5 — diagnostics (`src/diagnostics.py`, figures in `results/`)
-- [ ] Phase 6 — experiment
-- [ ] Phase 7 — write-up
+- [x] Phase 6 — experiment
+  
