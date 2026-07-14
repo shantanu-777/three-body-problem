@@ -43,8 +43,9 @@ from src.simulator import simulate_trajectory
 def _typical_perturbation_sizes() -> np.ndarray:
     """Per-parameter perturbation magnitudes (position vs velocity scales)."""
     sizes = np.empty(config.N_FREE_DOF, dtype=float)
-    sizes[0:4] = 0.01 * (config.PRIOR_POS_RANGE[1] - config.PRIOR_POS_RANGE[0])
-    sizes[4:8] = 0.01 * (config.PRIOR_VEL_RANGE[1] - config.PRIOR_VEL_RANGE[0])
+    n_pos = 2 * config.DIM
+    sizes[:n_pos] = 0.01 * (config.PRIOR_POS_RANGE[1] - config.PRIOR_POS_RANGE[0])
+    sizes[n_pos:] = 0.01 * (config.PRIOR_VEL_RANGE[1] - config.PRIOR_VEL_RANGE[0])
     return sizes
 
 
@@ -96,9 +97,10 @@ def trajectory_sensitivity(
         sensitivities[name] = float(np.linalg.norm(delta))
 
         # Normalized variants for reporting.
+        is_position = i < 2 * config.DIM
         sensitivities[f"{name}_rel_total"] = sensitivities[name] / max(np.linalg.norm(base_vec), 1e-12)
-        block = obs[..., : config.OBS_N_POS] if i < 4 else obs[..., config.OBS_N_POS :]
-        base_block = base_obs[..., : config.OBS_N_POS] if i < 4 else base_obs[..., config.OBS_N_POS :]
+        block = obs[..., : config.OBS_N_POS] if is_position else obs[..., config.OBS_N_POS :]
+        base_block = base_obs[..., : config.OBS_N_POS] if is_position else base_obs[..., config.OBS_N_POS :]
         block_norm = max(np.linalg.norm(base_block), 1e-12)
         sensitivities[f"{name}_rel_block"] = float(
             np.linalg.norm((block - base_block).reshape(-1)) / block_norm
@@ -111,7 +113,8 @@ def plot_sensitivity(sensitivities: dict[str, float], out_path: Path) -> None:
     """Bar chart of raw observation-space sensitivity."""
     values = [sensitivities[name] for name in PARAMETER_NAMES]
     fig, ax = plt.subplots(figsize=(10, 4))
-    colors = ["#2a6f97" if i < 4 else "#e76f51" for i in range(8)]
+    n_pos = 2 * config.DIM
+    colors = ["#2a6f97" if i < n_pos else "#e76f51" for i in range(config.N_FREE_DOF)]
     ax.bar(PARAMETER_NAMES, values, color=colors)
     ax.set_ylabel("||Δ observation|| (L2)")
     ax.set_title("Trajectory sensitivity to 1% prior-range parameter perturbations")

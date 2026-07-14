@@ -23,7 +23,7 @@ import numpy as np
 # ---------------------------------------------------------------------------
 G = 1.0                      # gravitational constant (nondimensional)
 N_BODIES = 3                 # three-body problem
-DIM = 2                      # planar (2D) problem
+DIM = 3                      # spatial dimension (2 = planar, 3 = full 3D)
 
 # Three distinct, fixed, LABELED masses in ratio 1:2:3, normalized so sum = 1.
 # Body labels must stay consistent between simulator and observation.
@@ -31,11 +31,13 @@ MASS_RATIO = np.array([1.0, 2.0, 3.0])
 MASSES = MASS_RATIO / MASS_RATIO.sum()      # -> [1/6, 2/6, 3/6] = [0.1667, 0.3333, 0.5]
 
 # Number of independent degrees of freedom we actually infer.
-# Nominal DOF = N_BODIES * DIM * 2 (position + velocity) = 12.
-# COM-at-origin removes DIM, zero-momentum removes DIM  -> 12 - 4 = 8 free DOF.
+# Nominal DOF = N_BODIES * DIM * 2 (position + velocity).
+# COM-at-origin removes DIM, zero-momentum removes DIM.
 # We infer bodies 1 & 2 (positions + velocities) and construct body 3 from the
 # constraints; see src/priors.py.
-N_FREE_DOF = (N_BODIES - 1) * DIM * 2        # = 8
+#   2D -> (3-1)*2*2 = 8 free DOF
+#   3D -> (3-1)*3*2 = 12 free DOF
+N_FREE_DOF = (N_BODIES - 1) * DIM * 2
 
 # ---------------------------------------------------------------------------
 # Numerical integrator  [FINALIZED — spec]
@@ -84,17 +86,18 @@ OBS_TIMES = np.linspace(0.0, T_MAX, N_OBS)   # e.g. [0, 3.33, 6.67, 10]
 SIGMA_X = 1e-2
 SIGMA_V = 1e-2
 
-# Observation layout: 6 position features + 6 velocity features per timestep.
-OBS_N_POS = N_BODIES * DIM          # 6
-OBS_N_VEL = N_BODIES * DIM          # 6
-OBS_N_FEATURES = OBS_N_POS + OBS_N_VEL  # 12
+# Observation layout: N_BODIES*DIM position features + same many velocity
+# features per timestep. 2D -> 6+6 = 12; 3D -> 9+9 = 18.
+OBS_N_POS = N_BODIES * DIM
+OBS_N_VEL = N_BODIES * DIM
+OBS_N_FEATURES = OBS_N_POS + OBS_N_VEL
 
 # After block-wise z-scoring, multiply velocity channels by this factor so the
 # summary network does not ignore them (they are ~13x noisier relative to scale).
 VEL_OBS_EMPHASIS = 8.0
 
 # ---------------------------------------------------------------------------
-# Prior over the 8 free DOF  [set in Phase 3]
+# Prior over the free DOF (8 in 2D, 12 in 3D)  [set in Phase 3]
 # ---------------------------------------------------------------------------
 # Uniform prior on bodies 1 & 2 (positions + velocities), with body 3 constructed
 # from COM + zero-momentum constraints. Rejection during simulation further
@@ -124,6 +127,14 @@ SUMMARY_EMBED_DIMS = (128, 128)
 SUMMARY_NUM_HEADS = (8, 8)
 INFERENCE_FLOW_DEPTH = 8
 LEARNING_RATE = 5e-4
+
+# Which inference (generative) network to use for the posterior:
+#   "coupling"     -> CouplingFlow (discrete normalizing flow; fast sampling)
+#   "flowmatching" -> FlowMatching (continuous flow trained by flow matching;
+#                     ODE-based sampling, often more flexible but slower to sample)
+# We compare both on the same data; see inference.py / diagnostics.py --inference-network.
+INFERENCE_NETWORK = "coupling"
+FLOWMATCHING_USE_OPTIMAL_TRANSPORT = True
 CHECKPOINT_DIR = "checkpoints"
 RESULTS_DIR = "results"
 OBSERVABLE_SCALES_FILE = "observable_scales.json"

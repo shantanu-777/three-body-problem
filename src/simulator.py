@@ -72,14 +72,15 @@ class SimulationResult:
 
 
 def pack_state(positions: np.ndarray, velocities: np.ndarray) -> np.ndarray:
-    """Flatten (3,2) positions and velocities into a 12-element state vector."""
+    """Flatten (N_BODIES, DIM) positions and velocities into a flat state vector."""
     return np.concatenate([positions.ravel(), velocities.ravel()])
 
 
 def unpack_state(state: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    """Recover (3,2) positions and velocities from the flat state vector."""
-    positions = state[:6].reshape(config.N_BODIES, config.DIM)
-    velocities = state[6:].reshape(config.N_BODIES, config.DIM)
+    """Recover (N_BODIES, DIM) positions and velocities from the flat state vector."""
+    n_pos = config.N_BODIES * config.DIM
+    positions = state[:n_pos].reshape(config.N_BODIES, config.DIM)
+    velocities = state[n_pos:].reshape(config.N_BODIES, config.DIM)
     return positions, velocities
 
 
@@ -424,13 +425,22 @@ def make_demo_initial_state(seed: int | None = None) -> tuple[np.ndarray, np.nda
 
     m1, m2, m3 = config.MASSES
     separation = 5.0
+    d = config.DIM
 
-    r1 = np.array([-separation, 0.0])
-    r2 = np.array([separation, 0.0])
+    def _vec(values: list[float]) -> np.ndarray:
+        """Build a DIM-length vector, padding/truncating the given components."""
+        out = np.zeros(d, dtype=float)
+        out[: min(d, len(values))] = values[: min(d, len(values))]
+        return out
+
+    # Two bodies on the x-axis; in 3D give them a small out-of-plane (z) offset
+    # so the demo configuration is genuinely three-dimensional but still bounded.
+    r1 = _vec([-separation, 0.0, 1.0])
+    r2 = _vec([separation, 0.0, -1.0])
     r3 = -(m1 * r1 + m2 * r2) / m3
 
-    v1 = np.array([0.0, 0.05])
-    v2 = np.array([0.0, -0.025])
+    v1 = _vec([0.0, 0.05, 0.01])
+    v2 = _vec([0.0, -0.025, -0.005])
     v3 = -(m1 * v1 + m2 * v2) / m3
 
     positions = np.stack([r1, r2, r3], axis=0)

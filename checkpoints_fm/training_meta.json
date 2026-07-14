@@ -1,0 +1,28 @@
+{
+  "dataset": "data/train_full_3d.npz",
+  "epochs": 100,
+  "batch_size": 32,
+  "n_train": 45000,
+  "n_val": 5000,
+  "inference_network": "flowmatching",
+  "train_seconds": 1547.3889592500054,
+  "parameter_names": [
+    "r1_x",
+    "r1_y",
+    "r1_z",
+    "r2_x",
+    "r2_y",
+    "r2_z",
+    "v1_x",
+    "v1_y",
+    "v1_z",
+    "v2_x",
+    "v2_y",
+    "v2_z"
+  ],
+  "vel_obs_emphasis": 8.0,
+  "summary_dim": 32,
+  "flow_depth": 8,
+  "final_loss": 0.08936992287635803,
+  "final_val_loss": 0.08879993110895157
+}

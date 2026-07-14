@@ -1,0 +1,34 @@
+{
+  "r1_x": {
+    "mean_sensitivity": 4.655985248990998,
+    "std_sensitivity": 3.264663863706828
+  },
+  "r1_y": {
+    "mean_sensitivity": 4.006912123945749,
+    "std_sensitivity": 2.8646712150975278
+  },
+  "r2_x": {
+    "mean_sensitivity": 4.168726043860651,
+    "std_sensitivity": 3.2917895359824882
+  },
+  "r2_y": {
+    "mean_sensitivity": 4.878084204989241,
+    "std_sensitivity": 3.6222450099986925
+  },
+  "v1_x": {
+    "mean_sensitivity": 1.3171323670360473,
+    "std_sensitivity": 1.9561164402372366
+  },
+  "v1_y": {
+    "mean_sensitivity": 1.5374826426550268,
+    "std_sensitivity": 1.9690334202754503
+  },
+  "v2_x": {
+    "mean_sensitivity": 2.5001735612554965,
+    "std_sensitivity": 2.458351860651693
+  },
+  "v2_y": {
+    "mean_sensitivity": 2.471282760776637,
+    "std_sensitivity": 2.1477341194979247
+  }
+}
