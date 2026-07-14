@@ -66,14 +66,14 @@ MAX_ENERGY_DRIFT = 1e-6
 # ---------------------------------------------------------------------------
 # Empirical estimate from src/lyapunov.py on the reference demo configuration:
 #   LYAPUNOV_EXPONENT ≈ 0.089  ->  LYAPUNOV_TIME ≈ 11.3
-# T_MAX = 10 keeps the full window within ~0.9 Lyapunov times (all 50 obs points
-# fall inside the first Lyapunov time, satisfying the spec).
+# T_MAX = 10 keeps the full window within ~0.9 Lyapunov times.
+# Per Aayush's feedback: observe only 4 points along each trajectory (not 50).
 LYAPUNOV_EXPONENT = 0.08866937958425708
 LYAPUNOV_TIME = 11.277850422419627
 
 T_MAX = 10.0
-N_OBS = 50
-OBS_TIMES = np.linspace(0.0, T_MAX, N_OBS)
+N_OBS = 4
+OBS_TIMES = np.linspace(0.0, T_MAX, N_OBS)   # e.g. [0, 3.33, 6.67, 10]
 
 # ---------------------------------------------------------------------------
 # Observation noise  [set in Phase 3]
