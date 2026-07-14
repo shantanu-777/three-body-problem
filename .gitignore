@@ -19,6 +19,13 @@ __pycache__/
 checkpoints/
 results/
 
+# Generated presentation slides & previews
+results/slides_preview/
+results/slides.pdf
+
+# Generated work-minutes document
+results/project_minutes.pdf
+
 # OS / editor
 .DS_Store
 .vscode/

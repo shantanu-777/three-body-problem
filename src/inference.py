@@ -32,6 +32,7 @@ import argparse
 import json
 import os
 import sys
+import time
 from pathlib import Path
 
 import numpy as np
@@ -114,14 +115,37 @@ def build_adapter() -> bf.adapters.Adapter:
     )
 
 
-def build_workflow(checkpoint_dir: str | Path | None = None) -> bf.BasicWorkflow:
-    """Create the BayesFlow workflow (summary net + coupling flow)."""
+def build_inference_network(name: str | None = None):
+    """
+    Build the inference (generative) network by name.
+
+    - "coupling":     CouplingFlow — a discrete normalizing flow. Fast to sample.
+    - "flowmatching": FlowMatching — a continuous flow trained via flow matching,
+                      sampled by integrating an ODE. More flexible, slower to sample.
+    """
+    name = (config.INFERENCE_NETWORK if name is None else name).lower()
+    if name in ("coupling", "couplingflow", "coupling_flow"):
+        return bf.networks.CouplingFlow(depth=config.INFERENCE_FLOW_DEPTH)
+    if name in ("flowmatching", "flow_matching", "fm"):
+        return bf.networks.FlowMatching(
+            use_optimal_transport=config.FLOWMATCHING_USE_OPTIMAL_TRANSPORT,
+        )
+    raise ValueError(
+        f"unknown inference network '{name}'; use 'coupling' or 'flowmatching'"
+    )
+
+
+def build_workflow(
+    checkpoint_dir: str | Path | None = None,
+    inference_network: str | None = None,
+) -> bf.BasicWorkflow:
+    """Create the BayesFlow workflow (summary net + selected inference network)."""
     checkpoint_dir = config.CHECKPOINT_DIR if checkpoint_dir is None else checkpoint_dir
     Path(checkpoint_dir).mkdir(parents=True, exist_ok=True)
 
     return bf.BasicWorkflow(
         adapter=build_adapter(),
-        inference_network=bf.networks.CouplingFlow(depth=config.INFERENCE_FLOW_DEPTH),
+        inference_network=build_inference_network(inference_network),
         summary_network=bf.networks.TimeSeriesTransformer(
             summary_dim=config.SUMMARY_DIM,
             embed_dims=config.SUMMARY_EMBED_DIMS,
@@ -144,11 +168,13 @@ def train_workflow(
     val_fraction: float | None = None,
     seed: int | None = None,
     checkpoint_dir: str | Path | None = None,
+    inference_network: str | None = None,
 ) -> tuple[bf.BasicWorkflow, dict[str, np.ndarray], dict[str, np.ndarray]]:
     """Load data, build workflow, and train offline."""
     epochs = config.TRAIN_EPOCHS if epochs is None else epochs
     batch_size = config.TRAIN_BATCH_SIZE if batch_size is None else batch_size
     val_fraction = config.TRAIN_VAL_FRACTION if val_fraction is None else val_fraction
+    inference_network = config.INFERENCE_NETWORK if inference_network is None else inference_network
     checkpoint_dir = Path(config.CHECKPOINT_DIR if checkpoint_dir is None else checkpoint_dir)
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
@@ -157,13 +183,15 @@ def train_workflow(
         data, val_fraction, seed=seed, checkpoint_dir=checkpoint_dir
     )
 
-    workflow = build_workflow(checkpoint_dir=checkpoint_dir)
+    workflow = build_workflow(checkpoint_dir=checkpoint_dir, inference_network=inference_network)
+    t_train_start = time.perf_counter()
     history = workflow.fit_offline(
         train_data,
         epochs=epochs,
         batch_size=batch_size,
         validation_data=val_data,
     )
+    train_seconds = time.perf_counter() - t_train_start
 
     meta_path = checkpoint_dir / "training_meta.json"
     meta_path.write_text(
@@ -174,6 +202,8 @@ def train_workflow(
                 "batch_size": batch_size,
                 "n_train": len(train_data["parameters"]),
                 "n_val": len(val_data["parameters"]),
+                "inference_network": inference_network,
+                "train_seconds": train_seconds,
                 "parameter_names": PARAMETER_NAMES,
                 "vel_obs_emphasis": config.VEL_OBS_EMPHASIS,
                 "summary_dim": config.SUMMARY_DIM,
@@ -199,15 +229,23 @@ def main() -> None:
     parser.add_argument("--epochs", type=int, default=config.TRAIN_EPOCHS)
     parser.add_argument("--batch-size", type=int, default=config.TRAIN_BATCH_SIZE)
     parser.add_argument("--checkpoint-dir", type=str, default=config.CHECKPOINT_DIR)
+    parser.add_argument(
+        "--inference-network",
+        type=str,
+        default=config.INFERENCE_NETWORK,
+        choices=["coupling", "flowmatching"],
+        help="which inference network to train",
+    )
     parser.add_argument("--seed", type=int, default=None)
     args = parser.parse_args()
 
-    print(f"Training on {args.data} for {args.epochs} epochs")
+    print(f"Training {args.inference_network} on {args.data} for {args.epochs} epochs")
     workflow, train_data, val_data = train_workflow(
         args.data,
         epochs=args.epochs,
         batch_size=args.batch_size,
         checkpoint_dir=args.checkpoint_dir,
+        inference_network=args.inference_network,
         seed=args.seed,
     )
     print(f"train size: {len(train_data['parameters'])}, val size: {len(val_data['parameters'])}")

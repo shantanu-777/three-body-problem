@@ -1,0 +1,22 @@
+{
+  "dataset": "data/train_full.npz",
+  "epochs": 100,
+  "batch_size": 32,
+  "n_train": 45000,
+  "n_val": 5000,
+  "parameter_names": [
+    "r1_x",
+    "r1_y",
+    "r2_x",
+    "r2_y",
+    "v1_x",
+    "v1_y",
+    "v2_x",
+    "v2_y"
+  ],
+  "vel_obs_emphasis": 8.0,
+  "summary_dim": 32,
+  "flow_depth": 8,
+  "final_loss": -14.886008262634277,
+  "final_val_loss": -16.429397583007812
+}

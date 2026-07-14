@@ -45,27 +45,44 @@ import config
 from src.simulator import min_pairwise_distance, max_distance_from_com, validate_initial_state
 
 
-# Names for the 8 inferred parameters (for plots and the report).
-PARAMETER_NAMES = [
-    "r1_x", "r1_y", "r2_x", "r2_y",
-    "v1_x", "v1_y", "v2_x", "v2_y",
-]
+# Axis labels used to build parameter names for any spatial dimension.
+_AXIS_LABELS = ("x", "y", "z", "w")
+
+
+def _build_parameter_names() -> list[str]:
+    """
+    Names for the inferred free parameters, ordered [r1, r2, v1, v2] with each
+    block spanning all spatial axes. In 2D this is 8 names; in 3D, 12.
+    """
+    axes = _AXIS_LABELS[: config.DIM]
+    names: list[str] = []
+    for kind in ("r", "v"):
+        for body in (1, 2):
+            for axis in axes:
+                names.append(f"{kind}{body}_{axis}")
+    return names
+
+
+# Names for the inferred parameters (for plots and the report).
+PARAMETER_NAMES = _build_parameter_names()
 
 
 def free_dof_to_full_state(theta: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """
-    Map the 8 free parameters to full positions and velocities (3, 2) each.
+    Map the free parameters to full positions and velocities (N_BODIES, DIM) each.
 
-    theta layout: [r1_x, r1_y, r2_x, r2_y, v1_x, v1_y, v2_x, v2_y]
+    theta layout: [r1(DIM), r2(DIM), v1(DIM), v2(DIM)]; body 3 is constructed
+    from the COM-at-origin and zero-momentum constraints.
     """
     theta = np.asarray(theta, dtype=float)
     if theta.shape != (config.N_FREE_DOF,):
         raise ValueError(f"expected theta shape ({config.N_FREE_DOF},), got {theta.shape}")
 
-    r1 = theta[0:2]
-    r2 = theta[2:4]
-    v1 = theta[4:6]
-    v2 = theta[6:8]
+    d = config.DIM
+    r1 = theta[0:d]
+    r2 = theta[d : 2 * d]
+    v1 = theta[2 * d : 3 * d]
+    v2 = theta[3 * d : 4 * d]
 
     m1, m2, m3 = config.MASSES
     r3 = -(m1 * r1 + m2 * r2) / m3
@@ -98,8 +115,9 @@ def log_prior(theta: np.ndarray) -> float:
     lo_p, hi_p = config.PRIOR_POS_RANGE
     lo_v, hi_v = config.PRIOR_VEL_RANGE
 
-    pos = theta[[0, 1, 2, 3]]
-    vel = theta[[4, 5, 6, 7]]
+    n_pos = 2 * config.DIM
+    pos = theta[:n_pos]
+    vel = theta[n_pos:]
 
     if np.any(pos < lo_p) or np.any(pos > hi_p):
         return -np.inf
@@ -135,10 +153,11 @@ def sample_prior(rng: np.random.Generator | None = None) -> np.ndarray:
     lo_p, hi_p = config.PRIOR_POS_RANGE
     lo_v, hi_v = config.PRIOR_VEL_RANGE
 
+    n_pos = 2 * config.DIM
     for _ in range(config.MAX_PRIOR_PROPOSALS):
         theta = np.empty(config.N_FREE_DOF, dtype=float)
-        theta[0:4] = rng.uniform(lo_p, hi_p, size=4)
-        theta[4:8] = rng.uniform(lo_v, hi_v, size=4)
+        theta[:n_pos] = rng.uniform(lo_p, hi_p, size=n_pos)
+        theta[n_pos:] = rng.uniform(lo_v, hi_v, size=n_pos)
         positions, velocities = free_dof_to_full_state(theta)
         if is_valid_prior_draw(positions, velocities):
             return theta

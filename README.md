@@ -57,7 +57,7 @@ notebooks/           # exploration + figures for slides/report
 - [x] Phase 0 — environment & scaffold
 - [x] Phase 1 — simulator
 - [x] Phase 2 — Lyapunov timescale
-- [x] Phase 3 — priors + dataset (dev set: `data/train_small.npz`, 500 samples)
+- [x] Phase 3 — priors + dataset (`data/train_full.npz` target: 50k, **4 obs points/trajectory**)
 - [x] Phase 4 — BayesFlow training (`src/inference.py`, checkpoint in `checkpoints/`)
 - [x] Phase 5 — diagnostics (`src/diagnostics.py`, figures in `results/`)
 - [ ] Phase 6 — experiment
