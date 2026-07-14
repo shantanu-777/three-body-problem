@@ -47,7 +47,8 @@ os.environ.setdefault("KERAS_BACKEND", "jax")
 os.environ.setdefault("MPLCONFIGDIR", str(_ROOT / ".mplcache"))
 
 import config
-from src.inference import load_dataset, train_val_split
+from src.inference import load_dataset, train_val_split, train_workflow
+from src.observables import apply_observable_scales_to_dataset, load_observable_scales
 from src.priors import PARAMETER_NAMES
 
 
@@ -95,7 +96,7 @@ def run_diagnostics(
 
     from src.inference import train_workflow
 
-    print("training workflow...")
+    print("training workflow (with separate pos/vel observable scaling)...")
     workflow, _, _ = train_workflow(
         dataset_path,
         epochs=epochs or config.TRAIN_EPOCHS,
@@ -104,7 +105,9 @@ def run_diagnostics(
     )
 
     data = load_dataset(dataset_path)
-    _, test_data = train_val_split(data, val_fraction=config.TRAIN_VAL_FRACTION, seed=seed)
+    _, test_raw = train_val_split(data, val_fraction=config.TRAIN_VAL_FRACTION, seed=seed)
+    scales = load_observable_scales(checkpoint_dir / config.OBSERVABLE_SCALES_FILE)
+    test_data = apply_observable_scales_to_dataset(test_raw, scales)
 
     print("generating BayesFlow default diagnostics...")
     figures = workflow.plot_default_diagnostics(

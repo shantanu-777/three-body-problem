@@ -84,6 +84,15 @@ OBS_TIMES = np.linspace(0.0, T_MAX, N_OBS)
 SIGMA_X = 1e-2
 SIGMA_V = 1e-2
 
+# Observation layout: 6 position features + 6 velocity features per timestep.
+OBS_N_POS = N_BODIES * DIM          # 6
+OBS_N_VEL = N_BODIES * DIM          # 6
+OBS_N_FEATURES = OBS_N_POS + OBS_N_VEL  # 12
+
+# After block-wise z-scoring, multiply velocity channels by this factor so the
+# summary network does not ignore them (they are ~13x noisier relative to scale).
+VEL_OBS_EMPHASIS = 8.0
+
 # ---------------------------------------------------------------------------
 # Prior over the 8 free DOF  [set in Phase 3]
 # ---------------------------------------------------------------------------
@@ -110,13 +119,14 @@ TRAIN_EPOCHS = 100
 TRAIN_BATCH_SIZE = 32
 TRAIN_VAL_FRACTION = 0.1
 TRAIN_NUM_DIAG_SAMPLES = 1000
-SUMMARY_DIM = 16
-SUMMARY_EMBED_DIMS = (64, 64)
-SUMMARY_NUM_HEADS = (4, 4)
-INFERENCE_FLOW_DEPTH = 6
+SUMMARY_DIM = 32
+SUMMARY_EMBED_DIMS = (128, 128)
+SUMMARY_NUM_HEADS = (8, 8)
+INFERENCE_FLOW_DEPTH = 8
 LEARNING_RATE = 5e-4
 CHECKPOINT_DIR = "checkpoints"
 RESULTS_DIR = "results"
+OBSERVABLE_SCALES_FILE = "observable_scales.json"
 
 # ---------------------------------------------------------------------------
 # Reproducibility & backend

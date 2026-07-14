@@ -46,6 +46,11 @@ os.environ.setdefault("MPLCONFIGDIR", str(_ROOT / ".mplcache"))
 import bayesflow as bf
 
 import config
+from src.observables import (
+    apply_observable_scales_to_dataset,
+    fit_observable_scales,
+    save_observable_scales,
+)
 from src.priors import PARAMETER_NAMES
 
 
@@ -73,6 +78,24 @@ def train_val_split(
     train = {k: v[train_idx] for k, v in data.items()}
     val = {k: v[val_idx] for k, v in data.items()}
     return train, val
+
+
+def prepare_training_data(
+    data: dict[str, np.ndarray],
+    val_fraction: float,
+    seed: int | None,
+    checkpoint_dir: Path,
+) -> tuple[dict[str, np.ndarray], dict[str, np.ndarray]]:
+    """
+    Split data, fit observable scales on train only, apply separate pos/vel scaling.
+    """
+    train_raw, val_raw = train_val_split(data, val_fraction, seed=seed)
+    scales = fit_observable_scales(train_raw["observables"])
+    save_observable_scales(scales, checkpoint_dir / config.OBSERVABLE_SCALES_FILE)
+
+    train_data = apply_observable_scales_to_dataset(train_raw, scales)
+    val_data = apply_observable_scales_to_dataset(val_raw, scales)
+    return train_data, val_data
 
 
 def build_adapter() -> bf.adapters.Adapter:
@@ -126,9 +149,13 @@ def train_workflow(
     epochs = config.TRAIN_EPOCHS if epochs is None else epochs
     batch_size = config.TRAIN_BATCH_SIZE if batch_size is None else batch_size
     val_fraction = config.TRAIN_VAL_FRACTION if val_fraction is None else val_fraction
+    checkpoint_dir = Path(config.CHECKPOINT_DIR if checkpoint_dir is None else checkpoint_dir)
+    checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
     data = load_dataset(dataset_path)
-    train_data, val_data = train_val_split(data, val_fraction, seed=seed)
+    train_data, val_data = prepare_training_data(
+        data, val_fraction, seed=seed, checkpoint_dir=checkpoint_dir
+    )
 
     workflow = build_workflow(checkpoint_dir=checkpoint_dir)
     history = workflow.fit_offline(
@@ -138,7 +165,7 @@ def train_workflow(
         validation_data=val_data,
     )
 
-    meta_path = Path(checkpoint_dir or config.CHECKPOINT_DIR) / "training_meta.json"
+    meta_path = checkpoint_dir / "training_meta.json"
     meta_path.write_text(
         json.dumps(
             {
@@ -148,6 +175,9 @@ def train_workflow(
                 "n_train": len(train_data["parameters"]),
                 "n_val": len(val_data["parameters"]),
                 "parameter_names": PARAMETER_NAMES,
+                "vel_obs_emphasis": config.VEL_OBS_EMPHASIS,
+                "summary_dim": config.SUMMARY_DIM,
+                "flow_depth": config.INFERENCE_FLOW_DEPTH,
                 "final_loss": float(history.history["loss"][-1]),
                 "final_val_loss": float(history.history.get("val_loss", [np.nan])[-1]),
             },
