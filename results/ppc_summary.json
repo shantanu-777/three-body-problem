@@ -1,0 +1,8 @@
+{
+  "dataset": "data/train_full_3d.npz",
+  "checkpoint_dir": "checkpoints",
+  "n_systems_coverage": 120,
+  "n_draws_coverage": 50,
+  "ppc_coverage_90": 0.8903935185185186,
+  "note": "fraction of observed features inside the 90% posterior-predictive interval"
+}
