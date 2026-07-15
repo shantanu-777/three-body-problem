@@ -1,0 +1,50 @@
+{
+  "r1_x": {
+    "mean_sensitivity": 0.7750584309956597,
+    "std_sensitivity": 0.7758413791720645
+  },
+  "r1_y": {
+    "mean_sensitivity": 0.7030558585384996,
+    "std_sensitivity": 1.0407323775921302
+  },
+  "r1_z": {
+    "mean_sensitivity": 0.889572617086662,
+    "std_sensitivity": 1.1688275523701115
+  },
+  "r2_x": {
+    "mean_sensitivity": 0.8932896176153531,
+    "std_sensitivity": 1.0476257557972837
+  },
+  "r2_y": {
+    "mean_sensitivity": 0.9725633901435696,
+    "std_sensitivity": 1.0277789018799424
+  },
+  "r2_z": {
+    "mean_sensitivity": 0.8765130558255064,
+    "std_sensitivity": 1.1794957533766113
+  },
+  "v1_x": {
+    "mean_sensitivity": 0.33081136999934835,
+    "std_sensitivity": 0.4189975792021731
+  },
+  "v1_y": {
+    "mean_sensitivity": 0.27587475974209424,
+    "std_sensitivity": 0.3557071237443644
+  },
+  "v1_z": {
+    "mean_sensitivity": 0.3818123622709872,
+    "std_sensitivity": 0.5339556101762221
+  },
+  "v2_x": {
+    "mean_sensitivity": 0.6004757679692467,
+    "std_sensitivity": 0.7619617289647509
+  },
+  "v2_y": {
+    "mean_sensitivity": 0.4412901373689042,
+    "std_sensitivity": 0.5611235150285208
+  },
+  "v2_z": {
+    "mean_sensitivity": 0.33456693888291444,
+    "std_sensitivity": 0.47068080826648734
+  }
+}
